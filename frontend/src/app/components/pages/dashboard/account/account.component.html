@@ -1,0 +1,68 @@
+<div class="page">
+  <div class="page-box">IL TUO PROFILO</div>
+  <div class="page-content">
+    <div class="page-content-data">
+
+      <div class="AdditiviDivMaster">
+
+      <h3>ELENCO LE POSSIBILI OPERAZIONI</h3>
+      <div class="button-container">
+        <button style="margin-top: 35px; margin-left: 160px;" mat-raised-button
+                class="btn-class"
+                (click)="toggleCreateAdminForm()">Crea nuovo Amministratore
+        </button>
+        <button style="margin-top: 35px; margin-left: 160px;" mat-raised-button
+                class="btn-class"
+                (click)="toggleDeleteAdminForm()">Elimina Amministratore
+        </button>
+      </div>
+
+        <div class="createAdminDiv">
+      <form class="createAdmin" *ngIf="addNewAdmin" [formGroup]="form">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Crea Amministratore</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h3>NOME UTENTE</h3>
+            <mat-form-field>
+              <input matInput placeholder="Username" formControlName="username">
+            </mat-form-field>
+            <h3>PASSWORD</h3>
+            <mat-form-field>
+              <input matInput placeholder="Password" formControlName="password" type="password">
+            </mat-form-field>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="createNewAdministrator()">Crea Amministratore</button>
+            <button mat-button (click)="undoCreation()">Annulla</button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+      </div>
+
+        <div class = "deleteAdminDiv">
+        <!--  Form per l'eliminazione dell'amministratore -->
+        <form class="deleteAdmin" *ngIf="showDeleteAdminForm" [formGroup]="deleteForm">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Elimina Amministratore</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <h3>NOME AMMINISTRATORE</h3>
+              <mat-form-field>
+                <input matInput placeholder="Nome Amministratore" formControlName="username">
+              </mat-form-field>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-button (click)="deleteAdministrator()">Elimina Amministratore</button>
+              <button mat-button (click)="cancelDelete()">Annulla</button>
+            </mat-card-actions>
+          </mat-card>
+        </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

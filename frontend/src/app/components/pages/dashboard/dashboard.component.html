@@ -1,0 +1,26 @@
+<mat-drawer-container>
+  <mat-drawer mode="side" [opened]="sideBarOpen">
+    <app-sidenav></app-sidenav>
+  </mat-drawer>
+  <mat-drawer-content>
+    <app-header (toggleSidebarForMe)="sideBarToggler()"></app-header>
+
+    <!-- Contenuto principale -->
+    <main>
+      <div class="masterDiv" *ngIf= "!hasChild && !isUser">
+        <section>
+          <h2>Chi siamo</h2>
+          <img src="./assets/marlic-home.jpeg" alt="Logo azienda">
+          <p>Benvenuti nel nostro sito web!</p>
+        </section>
+      </div>
+      <p class="welcome-text" *ngIf= "!hasChild && isUser">
+        CIAO <strong class="highlighted-text">{{userType.username.toUpperCase()}},</strong><br><br>
+        BENVENUTO NEL TUO PROFILO PERSONALE
+      </p>
+      <router-outlet></router-outlet>
+    </main>
+    <!-- Fine del contenuto principale -->
+
+  </mat-drawer-content>
+</mat-drawer-container>

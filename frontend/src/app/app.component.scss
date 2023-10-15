@@ -1,0 +1,28 @@
+.jumbotron {
+  background-color: #fff;
+  padding: 5rem;
+  text-align: center;
+
+  h1 {
+    font-size: 3rem;
+    font-weight: bold;
+  }
+
+  p {
+    font-size: 1.5rem;
+    font-weight: lighter;
+  }
+}
+
+.btn-primary {
+  background-color: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+
+  &:hover {
+    background-color: #1e293b;
+    color: #0f172a;
+    border-color: #0f172a;
+  }
+}
+

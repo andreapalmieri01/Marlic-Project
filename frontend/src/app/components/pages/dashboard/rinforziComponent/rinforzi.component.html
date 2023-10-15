@@ -1,0 +1,810 @@
+<div class="page">
+  <div class="page-box">SEZIONE RINFORZI</div>
+  <div class="page-content">
+    <div class="page-content-data">
+
+      <h3>ELENCO LE POSSIBILI OPERAZIONI</h3>
+      <div class="search-container">
+        <div class="search-input-container">
+          <mat-form-field class="search-input">
+            <input matInput [(ngModel)]="searchNome" placeholder="Cerca Rinforzo per nome">
+          </mat-form-field>
+          <div class="search-button-container">
+            <button mat-raised-button class="btn-class" (click)="searchRinforzo()">Cerca</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <button mat-raised-button class="btn-class" (click)="showAllRinforzi = !showAllRinforzi">Vedi Lista
+          Rinforzi</button>
+        <button mat-raised-button class="btn-class" *ngIf="isUser" (click)="toggleCreateRinforzoForm()">Crea Nuovo Rinforzo</button>
+        <button mat-raised-button class="btn-class" *ngIf="isUser" (click)="toggleDeleteRinforzoForm()">Elimina Rinforzo</button>
+        <button mat-raised-button class="btn-class" (click)="toggleFilterRinforzoForm()">Filtra Rinforzi</button>
+      </div>
+
+
+      <!-- Filtraggio rinforzi -->
+      <div *ngIf="showFilterRinforzoForm" class="filter-form">
+        <h3>Filtra Rinforzi</h3>
+        <form (submit)="filtrareRinforzi()">
+          <div class="filter-criteria" *ngFor="let criterio of criteriFiltraggio; let i = index">
+            <mat-form-field class="filter-input">
+              <mat-label>Campo</mat-label>
+              <select matNativeControl [(ngModel)]="criteriFiltraggio[i].campo" name="campoFiltro">
+                <option *ngFor="let campo of campiNumerici" [value]="campo">{{ campo }}</option>
+                <option value="compatibilitaPolimeri">Compatibilità con Polimeri</option>
+                <option value="compatibilitaAdditivi">Compatibilità con Additivi</option>
+              </select>
+            </mat-form-field>
+
+            <mat-form-field class="filter-input">
+              <mat-label>Operatore</mat-label>
+              <select matNativeControl [(ngModel)]="criteriFiltraggio[i].operatore" name="condizioneFiltro">
+                <option value="maggiore">Maggiore</option>
+                <option value="minore">Minore</option>
+                <option value="uguale">Uguale</option>
+              </select>
+            </mat-form-field>
+
+            <mat-form-field class="filter-input">
+              <mat-label>Valore</mat-label>
+              <ng-container *ngIf="criteriFiltraggio[i].campo !== 'compatibilitaAdditivi' && criteriFiltraggio[i].campo !== 'compatibilitaPolimeri'; else numberInput">
+                <input matInput type="number" [(ngModel)]="criteriFiltraggio[i].valore" name="valoreFiltro" placeholder="Valore">
+              </ng-container>
+              <ng-template #numberInput>
+                <input matInput type="text" [(ngModel)]="criteriFiltraggio[i].valore" name="valoreFiltro" placeholder="Valore">
+              </ng-template>
+            </mat-form-field>
+
+            <button mat-icon-button (click)="rimuoviCriterio(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <button mat-raised-button type="button" (click)="aggiungiCriterio()" class="btn-class">Aggiungi Criterio</button>
+
+          <div class="filter-buttons">
+            <button mat-raised-button type="submit" class="btn-class">Filtra</button>
+            <button mat-raised-button type="button" (click)="annullaFiltro()" class="btn-class cancel-button">Annulla</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Sezione per visualizzare i rinforzi filtrati -->
+      <div *ngIf="!showAllRinforzi && showRinforziFiltrati" class="rinforzi-list-container">
+        <h3>Rinforzi Filtrati</h3>
+        <ol class="rinforzi-ol">
+          <li *ngFor="let rinforzo of rinforziFiltrati" class="rinforzi-li" (click)="showRinforzoDetails(rinforzo)">
+            {{ rinforzo.nome }}</li>
+        </ol>
+      </div>
+
+
+      <!-- Visualizzazione dettagli rinforzo -->
+      <div class="rinforzo-details" *ngIf="selectedRinforzo">
+        <h3>Dettagli del Rinforzo: {{ selectedRinforzo.nome }}</h3>
+        <mat-card class = "rinforzo-inner-card">
+          <mat-card-content>
+            <p><strong>Nome:</strong> {{ selectedRinforzo.nome }}</p>
+            <p><strong>Tipo:</strong> {{ selectedRinforzo.tipo }}</p>
+            <p><strong>Geometria:</strong> {{ selectedRinforzo.geometria }}</p>
+            <p><strong>Origine:</strong> {{ selectedRinforzo.origine }}</p>
+            <p><strong>Trattamenti Chimici:</strong>
+            <ng-container *ngIf="selectedRinforzo.trattamentiChimici !== null && selectedRinforzo.trattamentiChimici !== undefined">
+              {{ selectedRinforzo.trattamentiChimici }}
+            </ng-container>
+            </p>
+            <p><strong>Tensile Strength:</strong>
+              <ng-container *ngIf="selectedRinforzo.tensileStrengthMax !== null && selectedRinforzo.tensileStrengthMax !== undefined">
+                {{ selectedRinforzo.tensileStrength }} - {{ selectedRinforzo.tensileStrengthMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'tensileStrength')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.tensileStrengthMax === null || selectedRinforzo.tensileStrengthMax === undefined">
+                {{ selectedRinforzo.tensileStrength }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'tensileStrength')}}
+              </ng-container>
+            </p>
+
+            <p><strong>Compressional Strength:</strong>
+              <ng-container *ngIf="selectedRinforzo.compressionalStrengthMax !== null && selectedRinforzo.compressionalStrengthMax !== undefined">
+                {{ selectedRinforzo.compressionalStrength }} - {{ selectedRinforzo.compressionalStrengthMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'compressionalStrength')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.compressionalStrengthMax === null || selectedRinforzo.compressionalStrengthMax === undefined">
+                {{ selectedRinforzo.compressionalStrength }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'compressionalStrength')}}
+              </ng-container>
+            </p>
+
+            <p><strong>Flexural Strength:</strong>
+              <ng-container *ngIf="selectedRinforzo.flexuralStrengthMax !== null && selectedRinforzo.flexuralStrengthMax !== undefined">
+                {{ selectedRinforzo.flexuralStrength }} - {{ selectedRinforzo.flexuralStrengthMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'flexuralStrength')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.flexuralStrengthMax === null || selectedRinforzo.flexuralStrengthMax === undefined">
+                {{ selectedRinforzo.flexuralStrength }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'flexuralStrength')}}
+              </ng-container>
+            </p>
+
+            <p><strong>Torsional Strength:</strong>
+              <ng-container *ngIf="selectedRinforzo.torsionalStrengthMax !== null && selectedRinforzo.torsionalStrengthMax !== undefined">
+                {{ selectedRinforzo.torsionalStrength }} - {{ selectedRinforzo.torsionalStrengthMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'torsionalStrength')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.torsionalStrengthMax === null || selectedRinforzo.torsionalStrengthMax === undefined">
+                {{ selectedRinforzo.torsionalStrength }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'torsionalStrength')}}
+              </ng-container>
+            </p>
+
+            <p><strong>Impact Strength:</strong>
+              <ng-container *ngIf="selectedRinforzo.impactStrengthMax !== null && selectedRinforzo.impactStrengthMax !== undefined">
+                {{ selectedRinforzo.impactStrength }} - {{ selectedRinforzo.impactStrengthMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'impactStrength')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.impactStrengthMax === null || selectedRinforzo.impactStrengthMax === undefined">
+                {{ selectedRinforzo.impactStrength }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'impactStrength')}}
+              </ng-container>
+            </p>
+
+            <p><strong>Elongazione alla Rottura:</strong>
+              <ng-container *ngIf="selectedRinforzo.elongazioneRotturaMax !== null && selectedRinforzo.elongazioneRotturaMax !== undefined">
+                {{ selectedRinforzo.elongazioneRottura }} - {{ selectedRinforzo.elongazioneRotturaMax }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'elongazioneRottura')}}
+              </ng-container>
+              <ng-container *ngIf="selectedRinforzo.elongazioneRotturaMax === null || selectedRinforzo.elongazioneRotturaMax === undefined">
+                {{ selectedRinforzo.elongazioneRottura }} {{visualizzaUnitaMisuraRinforzo(selectedRinforzo.nome,'elongazioneRottura')}}
+              </ng-container>
+            </p>
+            <p><strong>Biodegradabilità:</strong> {{ selectedRinforzo.biodegradabilita }}</p>
+            <p><strong>Fine Vita:</strong> {{ selectedRinforzo.fineVita }}</p>
+            <p><strong>SDS:</strong> {{ selectedRinforzo.sds }}</p>
+            <p><strong>Compatibilità con i Polimeri:</strong></p>
+            <ol class="elementi-ol">
+              <li *ngFor="let polimero of selectedRinforzo.compatibilitaPolimeri" class="elementi-li" (click)="visualizzaSchedaPolimero(polimero)">{{ polimero }}</li>
+            </ol>
+            <div class="polimero-details" *ngIf="selectedPolimero && showPolimeroDetails">
+              <h3>Dettagli del Polimero: {{ selectedPolimero.nome }}</h3>
+              <mat-card class = "polimero-inner-card">
+                <mat-card-content>
+                  <p><strong>Nome:</strong> {{ selectedPolimero.nome }}</p>
+                  <p><strong>Origine:</strong> {{ selectedPolimero.origine }}</p>
+                  <p><strong>Classe:</strong> {{ selectedPolimero.classe }}</p>
+                  <p><strong>Peso Molecolare Ponderale:</strong>
+                    <ng-container *ngIf="selectedPolimero.pesoMolecolarePonderaleMax !== null && selectedPolimero.pesoMolecolarePonderaleMax !== undefined">
+                      {{ selectedPolimero.pesoMolecolarePonderale }} - {{ selectedPolimero.pesoMolecolarePonderaleMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'pesoMolecolarePonderale')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.pesoMolecolarePonderaleMax === null || selectedPolimero.pesoMolecolarePonderaleMax === undefined">
+                      {{ selectedPolimero.pesoMolecolarePonderale }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'pesoMolecolarePonderale')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Peso Molecolare Numerico:</strong>
+                    <ng-container *ngIf="selectedPolimero.pesoMolecolareNumericoMax !== null && selectedPolimero.pesoMolecolareNumericoMax !== undefined">
+                      {{ selectedPolimero.pesoMolecolareNumerico }} - {{ selectedPolimero.pesoMolecolareNumericoMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'pesoMolecolareNumerico')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.pesoMolecolareNumericoMax === null || selectedPolimero.pesoMolecolareNumericoMax === undefined">
+                      {{ selectedPolimero.pesoMolecolareNumerico }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'pesoMolecolareNumerico')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Temperatura di Fusione:</strong>
+                    <ng-container *ngIf="selectedPolimero.temperaturaFusioneMax !== null && selectedPolimero.temperaturaFusioneMax !== undefined">
+                      {{ selectedPolimero.temperaturaFusione }} - {{ selectedPolimero.temperaturaFusioneMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaFusione')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.temperaturaFusioneMax === null || selectedPolimero.temperaturaFusioneMax === undefined">
+                      {{ selectedPolimero.temperaturaFusione }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaFusione')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Temperatura di Rammollimento:</strong>
+                    <ng-container *ngIf="selectedPolimero.temperaturaRammollimentoMax !== null && selectedPolimero.temperaturaRammollimentoMax !== undefined">
+                      {{ selectedPolimero.temperaturaRammollimento }} - {{ selectedPolimero.temperaturaRammollimentoMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaRammollimento')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.temperaturaRammollimentoMax === null || selectedPolimero.temperaturaRammollimentoMax === undefined">
+                      {{ selectedPolimero.temperaturaRammollimento }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaRammollimento')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Temperatura Transizione Vetrosa:</strong>
+                    <ng-container *ngIf="selectedPolimero.temperaturaTransizioneVetrosaMax !== null && selectedPolimero.temperaturaTransizioneVetrosaMax !== undefined">
+                      {{ selectedPolimero.temperaturaTransizioneVetrosa }} - {{ selectedPolimero.temperaturaTransizioneVetrosaMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaTransizioneVetrosa')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.temperaturaTransizioneVetrosaMax === null || selectedPolimero.temperaturaTransizioneVetrosaMax === undefined">
+                      {{ selectedPolimero.temperaturaTransizioneVetrosa }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaTransizioneVetrosa')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Temperatura di Cristallizzazione:</strong>
+                    <ng-container *ngIf="selectedPolimero.temperaturaCristallizzazioneMax !== null && selectedPolimero.temperaturaCristallizzazioneMax !== undefined">
+                      {{ selectedPolimero.temperaturaCristallizzazione }} - {{ selectedPolimero.temperaturaCristallizzazioneMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaCristallizzazione')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.temperaturaCristallizzazioneMax === null || selectedPolimero.temperaturaCristallizzazioneMax === undefined">
+                      {{ selectedPolimero.temperaturaCristallizzazione }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'temperaturaCristallizzazione')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Grado di Ramificazione:</strong> {{ selectedPolimero.gradoDiRamificazione }}</p>
+                  <p><strong>Cristallinità:</strong> {{ selectedPolimero.cristallinita }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'cristallinita')}} </p>
+                  <p><strong>Viscosità al Taglio:</strong>
+                    <ng-container *ngIf="selectedPolimero.viscositaTaglioMax !== null && selectedPolimero.viscositaTaglioMax !== undefined">
+                      {{ selectedPolimero.viscositaTaglio }} - {{ selectedPolimero.viscositaTaglioMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'viscositaTaglio')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.viscositaTaglioMax === null || selectedPolimero.viscositaTaglioMax === undefined">
+                      {{ selectedPolimero.viscositaTaglio }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'viscositaTaglio')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Densità:</strong>
+                    <ng-container *ngIf="selectedPolimero.densitaMax !== null && selectedPolimero.densitaMax !== undefined">
+                      {{ selectedPolimero.densita }} - {{ selectedPolimero.densitaMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'densita')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.densitaMax === null || selectedPolimero.densitaMax === undefined">
+                      {{ selectedPolimero.densita }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'densita')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Durezza:</strong> {{ selectedPolimero.durezza }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'durezza')}} </p>
+                  <p><strong>Tensile Strength:</strong>
+                    <ng-container *ngIf="selectedPolimero.tensileStrengthMax !== null && selectedPolimero.tensileStrengthMax !== undefined">
+                      {{ selectedPolimero.tensileStrength }} - {{ selectedPolimero.tensileStrengthMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'tensileStrength')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.tensileStrengthMax === null || selectedPolimero.tensileStrengthMax === undefined">
+                      {{ selectedPolimero.tensileStrength }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'tensileStrength')}}
+                    </ng-container>
+                  </p>
+
+                  <p><strong>Torsional Strength:</strong>
+                    <ng-container *ngIf="selectedPolimero.torsionalStrengthMax !== null && selectedPolimero.torsionalStrengthMax !== undefined">
+                      {{ selectedPolimero.torsionalStrength }} - {{ selectedPolimero.torsionalStrengthMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'torsionalStrength')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.torsionalStrengthMax === null || selectedPolimero.torsionalStrengthMax === undefined">
+                      {{ selectedPolimero.torsionalStrength }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'torsionalStrength')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Impact Strength:</strong>
+                    <ng-container *ngIf="selectedPolimero.impactStrengthMax !== null && selectedPolimero.impactStrengthMax !== undefined">
+                      {{ selectedPolimero.impactStrength }} - {{ selectedPolimero.impactStrengthMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'impactStrength')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.impactStrengthMax === null || selectedPolimero.impactStrengthMax === undefined">
+                      {{ selectedPolimero.impactStrength }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'impactStrength')}}
+                    </ng-container>
+                  </p>
+
+                  <p><strong>Elongazione alla Rottura:</strong>
+                    <ng-container *ngIf="selectedPolimero.elongazioneRotturaMax !== null && selectedPolimero.elongazioneRotturaMax !== undefined">
+                      {{ selectedPolimero.elongazioneRottura }} - {{ selectedPolimero.elongazioneRotturaMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'elongazioneRottura')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.elongazioneRotturaMax === null || selectedPolimero.elongazioneRotturaMax === undefined">
+                      {{ selectedPolimero.elongazioneRottura }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'elongazioneRottura')}}
+                    </ng-container>
+                  </p>
+
+                  <p><strong>Modulo Elastico:</strong>
+                    <ng-container *ngIf="selectedPolimero.moduloElasticoMax !== null && selectedPolimero.moduloElasticoMax !== undefined">
+                      {{ selectedPolimero.moduloElastico }} - {{ selectedPolimero.moduloElasticoMax }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'moduloElastico')}}
+                    </ng-container>
+                    <ng-container *ngIf="selectedPolimero.moduloElasticoMax === null || selectedPolimero.moduloElasticoMax === undefined">
+                      {{ selectedPolimero.moduloElastico }} {{visualizzaUnitaMisuraPolimero(selectedPolimero.nome,'moduloElastico')}}
+                    </ng-container>
+                  </p>
+                  <p><strong>Biodegradabilità:</strong> {{ selectedPolimero.biodegradabilita }}</p>
+                  <p><strong>Fine Vita:</strong> {{ selectedPolimero.fineVita }}</p>
+                  <p><strong>SDS:</strong> {{ selectedPolimero.sds }}</p>
+                  <p><strong>Compatibilità con i Rinforzi:</strong></p>
+                  <ol class="elementi-ol">
+                    <li *ngFor="let rinforzo of selectedPolimero.compatibilitaRinforzi">{{ rinforzo }}</li>
+                  </ol>
+                  <p><strong>Compatibilità con gli Additivi:</strong></p>
+                  <ol class="elementi-ol">
+                    <li *ngFor="let additivo of selectedPolimero.compatibilitaAdditivi">{{ additivo }}</li>
+                  </ol>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button (click)="closePolimeroDetails()">Chiudi</button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+            <p><strong>Compatibilità con gli Additivi:</strong></p>
+            <ol class="elementi-ol">
+              <li *ngFor="let additivo of selectedRinforzo.compatibilitaAdditivi" class="elementi-li" (click)="visualizzaSchedaAdditivo(additivo)">{{ additivo }}</li>
+            </ol>
+            <div class="additivo-details" *ngIf="selectedAdditivo && showAdditivoDetails">
+              <h3>Dettagli dell'Additivo: {{ selectedAdditivo.nome }}</h3>
+              <mat-card class = "additivo-inner-card">
+                <mat-card-content>
+                  <p><strong>Nome:</strong> {{ selectedAdditivo.nome }}</p>
+                  <p><strong>Funzione:</strong> {{ selectedAdditivo.funzione }}</p>
+                  <p><strong>Origine:</strong> {{ selectedAdditivo.origine }}</p>
+                  <p><strong>Biodegradabilità:</strong> {{ selectedAdditivo.biodegradabilita }}</p>
+                  <p><strong>Fine Vita:</strong> {{ selectedAdditivo.fineVita }}</p>
+                  <p><strong>SDS:</strong> {{ selectedAdditivo.sds }}</p>
+                  <p><strong>Compatibilità con i Rinforzi:</strong></p>
+                  <ol class="elementi-ol">
+                    <li *ngFor="let rinforzo of selectedAdditivo.compatibilitaRinforzi">{{ rinforzo }}</li>
+                  </ol>
+                  <p><strong>Compatibilità con i Polimeri:</strong></p>
+                  <ol class="elementi-ol">
+                    <li *ngFor="let polimero of selectedAdditivo.compatibilitaPolimeri">{{ polimero }}</li>
+                  </ol>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button (click)="closeAdditivoDetails()">Chiudi</button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="closeRinforzoDetails()">Chiudi</button>
+            <button mat-button *ngIf="isUser" (click)="startEditing()">Modifica Rinforzo</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+
+
+
+
+      <!-- Modifica del rinforzo -->
+      <div *ngIf="isEditing && isUser">
+        <h3>Modifica Rinforzo: {{ selectedRinforzo?.nome }}</h3>
+        <form [formGroup]="form">
+          <mat-card-content class="form-grid">
+            <div class="grid-item">
+              <h3>NOME</h3>
+              <mat-form-field>
+                <input matInput placeholder="Nome" formControlName="nome">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>TIPO</h3>
+              <mat-form-field>
+                <mat-select placeholder="Tipo" formControlName="tipo">
+                  <mat-option value="Inorganica">Inorganica</mat-option>
+                  <mat-option value="Organica">Organica</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>GEOMETRIA</h3>
+              <mat-form-field>
+                <mat-select placeholder="Geometria" formControlName="geometria">
+                  <mat-option value="Particella">Particella</mat-option>
+                  <mat-option value="Fibra Corta">Fibra Corta</mat-option>
+                  <mat-option value="Fibra Lunga">Fibra Lunga</mat-option>
+                  <mat-option value="Tessuto">Tessuto</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>ORIGINE</h3>
+              <mat-form-field>
+                <mat-select placeholder="Origine" formControlName="origine">
+                  <mat-option value="Fossile">Fossile</mat-option>
+                  <mat-option value="Biomassa">Biomassa</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item" *ngIf="form.get('origine')?.value === 'Biomassa'">
+              <h3>TRATTAMENTI CHIMICI</h3>
+              <mat-form-field>
+                <input matInput placeholder="Trattamenti Chimici" formControlName="trattamentiChimici">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>TENSILE STRENGTH</h3>
+              <button class="toggle-max" (click)="toggleMaxField('tensileStrength')" *ngIf="!showMaxFields['tensileStrength']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('tensileStrength')" *ngIf="showMaxFields['tensileStrength']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Tensile Strength Min" formControlName="tensileStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['tensileStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Tensile Strength Max" formControlName="tensileStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('tensileStrength', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>COMPRESSIONAL STRENGTH</h3>
+              <button class="toggle-max" (click)="toggleMaxField('compressionalStrength')" *ngIf="!showMaxFields['compressionalStrength']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('compressionalStrength')" *ngIf="showMaxFields['compressionalStrength']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Compressional Strength" formControlName="compressionalStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['compressionalStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Compressional Strength Max" formControlName="compressionalStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('compressionalStrength', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>FLEXURAL STRENGTH</h3>
+              <button class="toggle-max" (click)="toggleMaxField('flexuralStrength')" *ngIf="!showMaxFields['flexuralStrength']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('flexuralStrength')" *ngIf="showMaxFields['flexuralStrength']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Flexural Strength" formControlName="flexuralStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['flexuralStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Flexural Strength Max" formControlName="flexuralStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('flexuralStrength', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>TORSIONAL STRENGTH</h3>
+              <button class="toggle-max" (click)="toggleMaxField('torsionalStrength')" *ngIf="!showMaxFields['torsionalStrength']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('torsionalStrength')" *ngIf="showMaxFields['torsionalStrength']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Torsional Strength Min" formControlName="torsionalStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['torsionalStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Torsional Strength Max" formControlName="torsionalStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('torsionalStrength', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-item">
+              <h3>IMPACT STRENGTH</h3>
+              <button class="toggle-max" (click)="toggleMaxField('impactStrength')" *ngIf="!showMaxFields['impactStrength']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('impactStrength')" *ngIf="showMaxFields['impactStrength']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Impact Strength" formControlName="impactStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['impactStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Impact Strength Max" formControlName="impactStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('impactStrength', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-item">
+              <h3>ELONGAZIONE ALLA ROTTTURA</h3>
+              <button class="toggle-max" (click)="toggleMaxField('elongazioneRottura')" *ngIf="!showMaxFields['elongazioneRottura']">Aggiungi Max</button>
+              <button class="toggle-max" (click)="toggleMaxField('elongazioneRottura')" *ngIf="showMaxFields['elongazioneRottura']">Nascondi Max</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Elongazione alla Rottura Min" formControlName="elongazioneRottura">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['elongazioneRottura']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Elongazione alla Rottura Max" formControlName="elongazioneRotturaMax">
+                  </mat-form-field>
+                </ng-container>
+                <div class="unita-di-misura-container">
+                  <span class="unita-di-misura-label">Unità di Misura</span>
+                  <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('elongazioneRottura', $event.value)">
+                    <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['elongazione']" [value]="unita">{{ unita }}</mat-option>
+                  </mat-select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-item">
+              <h3>BIODEGRADABILITÀ</h3>
+              <mat-form-field>
+                <input matInput placeholder="Biodegradabilità" formControlName="biodegradabilita">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>FINE VITA</h3>
+              <mat-form-field>
+                <mat-select placeholder="Fine Vita" formControlName="fineVita">
+                  <mat-option value="Riciclabile">Riciclabile</mat-option>
+                  <mat-option value="Non riciclabile">Non riciclabile</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>SDS</h3>
+              <mat-form-field>
+                <input matInput placeholder="SDS" formControlName="sds">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>COMPATIBILITÀ CON I POLIMERI</h3>
+              <div formArrayName="compatibilitaPolimeri">
+                <div *ngFor="let compatibilitaPolimero of compatibilitaPolimeriControls.controls; let i = index">
+                  <mat-form-field>
+                    <input matInput [formControlName]="i">
+                  </mat-form-field>
+                  <button mat-icon-button (click)="rimuoviPolimero(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <button mat-button (click)="aggiungiPolimero()">Aggiungi</button>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>COMPATIBILITÀ CON GLI ADDITIVI</h3>
+              <div formArrayName="compatibilitaAdditivi">
+                <div *ngFor="let compatibilitaAdditivo of compatibilitaAdditiviControls.controls; let i = index">
+                  <mat-form-field>
+                    <input matInput [formControlName]="i">
+                  </mat-form-field>
+                  <button mat-icon-button (click)="rimuoviAdditivo(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <button mat-button (click)="aggiungiAdditivo()">Aggiungi</button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="saveEdit()">Salva Modifiche</button>
+            <button mat-button (click)="cancelEditing()">Annulla Modifiche</button>
+          </mat-card-actions>
+        </form>
+      </div>
+
+      <!-- LISTA DI TUTTI I RINFORZI -->
+      <div class="rinforzi-list-container" *ngIf="showAllRinforzi">
+        <h3>Lista di Rinforzi</h3>
+        <ol class="rinforzi-ol">
+          <li *ngFor="let rinforzo of allRinforzi" class="rinforzi-li" (click)="showRinforzoDetails(rinforzo)">
+            {{ rinforzo.nome }}
+          </li>
+        </ol>
+      </div>
+
+
+      <form class="createRinforziDiv" *ngIf="addNewRinforzo && isUser" [formGroup]="form">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Crea Rinforzo</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="form-grid">
+            <div class="grid-item">
+              <h3>NOME</h3>
+              <mat-form-field>
+                <input matInput placeholder="Nome" formControlName="nome">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>TIPO</h3>
+              <mat-form-field>
+                <mat-select placeholder="Tipo" formControlName="tipo">
+                  <mat-option value="Inorganica">Inorganica</mat-option>
+                  <mat-option value="Organica">Organica</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>GEOMETRIA</h3>
+              <mat-form-field>
+                <mat-select placeholder="Geometria" formControlName="geometria">
+                  <mat-option value="Particella">Particella</mat-option>
+                  <mat-option value="Fibra Corta">Fibra Corta</mat-option>
+                  <mat-option value="Fibra Lunga">Fibra Lunga</mat-option>
+                  <mat-option value="Tessuto">Tessuto</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>ORIGINE</h3>
+              <mat-form-field>
+                <mat-select placeholder="Origine" formControlName="origine">
+                  <mat-option value="Fossile">Fossile</mat-option>
+                  <mat-option value="Biomassa">Biomassa</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item" *ngIf="form.get('origine')?.value === 'Biomassa'">
+              <h3>TRATTAMENTI CHIMICI</h3>
+              <mat-form-field>
+                <input matInput placeholder="Trattamenti Chimici" formControlName="trattamentiChimici">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>TENSILE STRENGTH</h3> <button class="toggle-max" (click)="toggleMaxField('tensileStrength')">+</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Tensile Strength" formControlName="tensileStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['tensileStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Tensile Strength Max" formControlName="tensileStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('tensileStrength', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>COMPRESSIONAL STRENGTH</h3> <button class="toggle-max" (click)="toggleMaxField('compressionalStrength')">+</button>
+              <div class="input-container">
+              <mat-form-field>
+                <input matInput placeholder="Compressional Strength" formControlName="compressionalStrength">
+              </mat-form-field>
+              <ng-container *ngIf="showMaxFields['compressionalStrength']">
+                <span class="range-divider">-</span>
+                <mat-form-field class="mat-form-field-max">
+                <input matInput placeholder="Compressional Strength Max" formControlName="compressionalStrengthMax">
+              </mat-form-field>
+              </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('compressionalStrength', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+            </div>
+            </div>
+            <div class="grid-item">
+              <h3>FLEXURAL STRENGTH</h3> <button class="toggle-max" (click)="toggleMaxField('flexuralStrength')">+</button>
+              <div class="input-container">
+              <mat-form-field>
+                <input matInput placeholder="Flexural Strength" formControlName="flexuralStrength">
+              </mat-form-field>
+              <ng-container *ngIf="showMaxFields['flexuralStrength']">
+                <span class="range-divider">-</span>
+                <mat-form-field class="mat-form-field-max">
+                <input matInput placeholder="Flexural Strength Max" formControlName="flexuralStrengthMax">
+              </mat-form-field>
+              </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('flexuralStrength', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+            </div>
+            </div>
+            <div class="grid-item">
+              <h3>TORSIONAL STRENGTH</h3> <button class="toggle-max" (click)="toggleMaxField('torsionalStrength')">+</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Torsional Strength" formControlName="torsionalStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['torsionalStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Torsional Strength Max" formControlName="torsionalStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('torsionalStrength', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="grid-item">
+              <h3>IMPACT STRENGTH</h3> <button class="toggle-max" (click)="toggleMaxField('impactStrength')">+</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Impact Strength" formControlName="impactStrength">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['impactStrength']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Impact Strength Max" formControlName="impactStrengthMax">
+                  </mat-form-field>
+                </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('impactStrength', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['forza']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="grid-item">
+              <h3>ELONGAZIONE ALLA ROTTTURA</h3> <button class="toggle-max" (click)="toggleMaxField('elongazioneRottura')">+</button>
+              <div class="input-container">
+                <mat-form-field>
+                  <input matInput placeholder="Elongazione alla Rottura" formControlName="elongazioneRottura">
+                </mat-form-field>
+                <ng-container *ngIf="showMaxFields['elongazioneRottura']">
+                  <span class="range-divider">-</span>
+                  <mat-form-field class="mat-form-field-max">
+                    <input matInput placeholder="Elongazione alla Rottura Max" formControlName="elongazioneRotturaMax">
+                  </mat-form-field>
+                </ng-container>
+                <mat-select (selectionChange)="selezionaUnitaMisuraRinforzo('elongazioneRottura', $event.value)">
+                  <mat-option *ngFor="let unita of unitaDiMisuraPerCampi['elongazione']" [value]="unita">{{ unita }}</mat-option>
+                </mat-select>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>BIODEGRADABILITÀ</h3>
+              <mat-form-field>
+                <input matInput placeholder="Biodegradabilità" formControlName="biodegradabilita">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>FINE VITA</h3>
+              <mat-form-field>
+                <mat-select placeholder="Fine Vita" formControlName="fineVita">
+                  <mat-option value="Riciclabile">Riciclabile</mat-option>
+                  <mat-option value="Non riciclabile">Non riciclabile</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>SDS</h3>
+              <mat-form-field>
+                <input matInput placeholder="SDS" formControlName="sds">
+              </mat-form-field>
+            </div>
+            <div class="grid-item">
+              <h3>COMPATIBILITÀ CON I POLIMERI</h3>
+              <div formArrayName="compatibilitaPolimeri">
+                <div *ngFor="let compatibilitaPolimero of compatibilitaPolimeriControls.controls; let i = index">
+                  <mat-form-field>
+                    <input matInput [formControlName]="i">
+                  </mat-form-field>
+                  <button mat-icon-button (click)="rimuoviPolimero(i)">
+                    <mat-icon class = "delete-icon">delete</mat-icon>
+                  </button>
+                </div>
+                <button mat-button (click)="aggiungiPolimero()">Aggiungi</button>
+              </div>
+            </div>
+            <div class="grid-item">
+              <h3>COMPATIBILITÀ CON GLI ADDITIVI</h3>
+              <div formArrayName="compatibilitaAdditivi">
+                <div *ngFor="let compatibilitaAdditivo of compatibilitaAdditiviControls.controls; let i = index">
+                  <mat-form-field>
+                    <input matInput [formControlName]="i">
+                  </mat-form-field>
+                  <button mat-icon-button (click)="rimuoviAdditivo(i)">
+                    <mat-icon class = "delete-icon">delete</mat-icon>
+                  </button>
+                </div>
+                <button mat-button (click)="aggiungiAdditivo()">Aggiungi</button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="createRinforzi()">Crea Rinforzo</button>
+            <button mat-button (click)="undoCreation()">Annulla</button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+
+
+      <!-- Form per l'eliminazione del Rinforzo -->
+      <form class="deleteRinforziDiv" *ngIf="showDeleteRinforzoForm && isUser" [formGroup]="deleteForm">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Elimina Rinforzo</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <h3>NOME RINFORZO</h3>
+            <mat-form-field>
+              <input matInput placeholder="Nome Rinforzo" formControlName="nome">
+            </mat-form-field>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="deleteRinforzo()">Elimina Rinforzo</button>
+            <button mat-button (click)="cancelDelete()">Annulla</button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+
+    </div>
+  </div>
+</div>

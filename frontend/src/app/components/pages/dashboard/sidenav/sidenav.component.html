@@ -1,0 +1,19 @@
+<mat-nav-list>
+  <h2 matSubheader class="title">DASHBOARD </h2>
+  <a mat-list-item (click)="changeRoute('/polimeri')">
+    <mat-icon class="icon">table_chart</mat-icon>
+    <span class="mat-list-item-content">Polimeri/Resine</span>
+  </a>
+  <a mat-list-item (click)="changeRoute('/additivi')">
+    <mat-icon class="icon">table_chart</mat-icon>
+    <span class="mat-list-item-content">Additivi</span>
+  </a>
+  <a mat-list-item (click)="changeRoute('/rinforzi')">
+    <mat-icon class="icon">table_chart</mat-icon>
+    <span class="mat-list-item-content">Rinforzi</span>
+  </a>
+  <a mat-list-item (click)="changeRoute('/account')" *ngIf="isUser">
+    <mat-icon class="icon">table_chart</mat-icon>
+    <span class="mat-list-item-content">Account</span>
+  </a>
+</mat-nav-list>

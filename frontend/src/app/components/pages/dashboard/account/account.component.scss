@@ -1,0 +1,82 @@
+.page {
+  background-color: #27354b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: "Arial", sans-serif;
+}
+
+.page-box {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: white;
+  min-height: 120px;
+  padding: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-content {
+  width: 100%;
+  max-width: 800px;
+  color: white;
+}
+
+.page-content-data {
+  background-color: #35475d;
+  padding: 20px;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  /* Centra gli elementi orizzontalmente */
+  align-items: center;
+  /* Centra gli elementi verticalmente */
+}
+
+.page-content-data-inner {
+  display: flex;
+  flex-wrap: wrap;
+  /* Permette il wrapping degli elementi se non entrano tutti nella stessa riga */
+  justify-content: center;
+  /* Centra gli elementi orizzontalmente */
+  align-items: center;
+  /* Centra gli elementi verticalmente */
+  gap: 20px;
+  /* Spazio uniforme tra gli elementi */
+}
+
+.createAdminDiv {
+  margin-top: 20px;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  display: flex;
+}
+
+.createAdmin {
+  color: black;
+  margin-top: 10px;
+  height: 240px;
+  width: 480px;
+}
+
+
+.deleteAdminDiv {
+  margin-top: 20px;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  display: flex;
+}
+
+.deleteAdmin {
+  color: black;
+  margin-top: 10px;
+  height: 240px;
+  width: 480px;
+}

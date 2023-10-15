@@ -1,0 +1,22 @@
+
+.card {
+  border: none;
+  width: 500px;
+  padding: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #0f172a; /* Mantieni il colore di sfondo della card */
+  color: #fff; /* Colore del testo all'interno della card */
+}
+
+.back-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 32px;
+  cursor: pointer;
+  color: black;
+}
+

@@ -1,0 +1,37 @@
+.mat-icon {
+  vertical-align: center;
+  margin-right: 1rem;
+  color: white;
+}
+
+.title {
+  color: #fff;
+  text-align: center;
+}
+
+.icon {
+  color: white;
+}
+
+.mat-divider{
+  border-top-width: 1px;
+  border-color: white;
+}
+
+.mat-list-item{
+  color: white !important;
+  font-size: 0.8rem;
+  height: 44px !important;
+  margin-bottom: 4px;
+  border-radius: 5px;
+  margin: 0 8px;
+  &:hover{
+    background-color: #1e293b;
+  }
+}
+
+.mat-list-item-content {
+  color: white !important;
+}
+
+

@@ -28,6 +28,9 @@ The technologies used for production are the following:
 - MongoDB is a non-relational database used in particular for web and mobile applications that require fluid management of unstructured data.
 
 # COMANDI
-To install Node.js: https://nodejs.org/ 
-To install Angular: npm install -g @angular/cli
-To install MongoDB: https://www.mongodb.com/try/download/shell
+
+1) To install Node.js: https://nodejs.org/
+ 
+2) To install Angular: npm install -g @angular/cli
+
+3) To install MongoDB: https://www.mongodb.com/try/download/shell

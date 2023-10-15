@@ -19,7 +19,7 @@ The operations foreseen for the administrator include:
 -Deleting an item by name.
 -Modifying one or more fields for an element already created.
 
-#PROJECT_STRUCTURE
+# PROJECT_STRUCTURE
 
 From an architectural point of view it is a single-page client-server application.
 The technologies used for production are the following:

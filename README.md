@@ -26,3 +26,8 @@ The technologies used for production are the following:
 - Angular representing the Frontend. For more information about Angular, see the official Angular Website.
 - NodeJ representing the server, which will answer the calls by providing data to the frontend also contacting the DataBase. For more information about NodeJs, see the official Website NodeJs
 - MongoDB is a non-relational database used in particular for web and mobile applications that require fluid management of unstructured data.
+
+# COMANDI
+To install Node.js: https://nodejs.org/ 
+To install Angular: npm install -g @angular/cli
+To install MongoDB: https://www.mongodb.com/try/download/shell
